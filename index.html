@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Code Generator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
+    <style>
+        .color-picker {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            width: 40px;
+            height: 40px;
+            border: none;
+            cursor: pointer;
+            background-color: transparent;
+        }
+        .color-picker::-webkit-color-swatch {
+            border-radius: 8px;
+            border: 2px solid #374151;
+        }
+        .color-picker::-moz-color-swatch {
+            border-radius: 8px;
+            border: 2px solid #374151;
+        }
+        #qr-code img {
+            max-width: 100%;
+            height: auto;
+            border: 1px solid #4b5563;
+            border-radius: 0.5rem;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-100 min-h-screen">
+    <div class="container mx-auto px-4 py-6">
+        <div class="max-w-md mx-auto">
+            <div class="text-center mb-6">
+                <h1 class="text-2xl font-bold mb-1">QR Code Generator</h1>
+                <p class="text-gray-400 text-sm">Create QR codes for URLs, text, and more</p>
+            </div>
+
+            <div class="bg-gray-800 rounded-xl shadow-lg p-5">
+                <!-- Content Input -->
+                <div class="mb-5">
+                    <label for="qr-content" class="block text-sm font-medium mb-2">Content</label>
+                    <textarea id="qr-content" rows="3" class="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Enter URL or text..."></textarea>
+                </div>
+
+                <!-- Customization Options -->
+                <div class="mb-5">
+                    <label class="block text-sm font-medium mb-2">Customization</label>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label for="qr-size" class="block text-xs text-gray-400 mb-1">Size</label>
+                            <select id="qr-size" class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                <option value="150">Small</option>
+                                <option value="200" selected>Medium</option>
+                                <option value="250">Large</option>
+                                <option value="300">Extra Large</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="qr-error" class="block text-xs text-gray-400 mb-1">Error Level</label>
+                            <select id="qr-error" class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                <option value="L">Low (7%)</option>
+                                <option value="M" selected>Medium (15%)</option>
+                                <option value="Q">High (25%)</option>
+                                <option value="H">Max (30%)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Color Options -->
+                <div class="mb-5">
+                    <label class="block text-sm font-medium mb-2">Colors</label>
+                    <div class="flex items-center space-x-4">
+                        <div>
+                            <label for="qr-fg-color" class="block text-xs text-gray-400 mb-1">Code</label>
+                            <input type="color" id="qr-fg-color" value="#ffffff" class="color-picker">
+                        </div>
+                        <div>
+                            <label for="qr-bg-color" class="block text-xs text-gray-400 mb-1">Background</label>
+                            <input type="color" id="qr-bg-color" value="#1f2937" class="color-picker">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Generate Button -->
+                <button id="generate-btn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg transition flex items-center justify-center mb-5">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd" />
+                    </svg>
+                    Generate QR Code
+                </button>
+
+                <!-- QR Code Display -->
+                <div id="qr-code-container" class="bg-gray-700 p-4 rounded-lg border border-gray-600 flex items-center justify-center mb-5">
+                    <div id="qr-code" class="text-center">
+                        <p class="text-gray-500">QR code will appear here</p>
+                    </div>
+                </div>
+
+                <!-- Download Button -->
+                <div id="download-section" class="hidden">
+                    <button id="download-btn" class="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg transition flex items-center justify-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" />
+                        </svg>
+                        Download QR Code
+                    </button>
+                </div>
+            </div>
+
+            <div class="mt-4 text-center text-xs text-gray-500">
+                <p>Scan with any smartphone camera</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const qrContent = document.getElementById('qr-content');
+            const qrSize = document.getElementById('qr-size');
+            const qrError = document.getElementById('qr-error');
+            const qrFgColor = document.getElementById('qr-fg-color');
+            const qrBgColor = document.getElementById('qr-bg-color');
+            const generateBtn = document.getElementById('generate-btn');
+            const downloadBtn = document.getElementById('download-btn');
+            const qrCodeContainer = document.getElementById('qr-code');
+            const downloadSection = document.getElementById('download-section');
+            
+            let currentQRCode = null;
+
+            generateBtn.addEventListener('click', generateQRCode);
+            downloadBtn.addEventListener('click', downloadQRCode);
+
+            function generateQRCode() {
+                const content = qrContent.value.trim();
+                if (!content) {
+                    alert('Please enter some content for the QR code');
+                    return;
+                }
+
+                const size = parseInt(qrSize.value);
+                const errorCorrection = qrError.value;
+                const fgColor = qrFgColor.value;
+                const bgColor = qrBgColor.value;
+
+                // Clear previous QR code
+                qrCodeContainer.innerHTML = '';
+
+                // Generate new QR code
+                try {
+                    const qr = qrcode(0, errorCorrection);
+                    qr.addData(content);
+                    qr.make();
+
+                    // Create canvas for QR code
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    
+                    // Set canvas size
+                    canvas.width = size;
+                    canvas.height = size;
+                    
+                    // Fill background color
+                    ctx.fillStyle = bgColor;
+                    ctx.fillRect(0, 0, size, size);
+                    
+                    // Calculate module size based on QR code size
+                    const moduleCount = qr.getModuleCount();
+                    const moduleSize = size / moduleCount;
+                    
+                    // Draw QR code modules
+                    ctx.fillStyle = fgColor;
+                    for (let row = 0; row < moduleCount; row++) {
+                        for (let col = 0; col < moduleCount; col++) {
+                            if (qr.isDark(row, col)) {
+                                ctx.fillRect(
+                                    col * moduleSize,
+                                    row * moduleSize,
+                                    moduleSize,
+                                    moduleSize
+                                );
+                            }
+                        }
+                    }
+                    
+                    // Create image from canvas
+                    const img = new Image();
+                    img.src = canvas.toDataURL('image/png');
+                    img.alt = 'Generated QR Code';
+                    
+                    // Display the QR code
+                    qrCodeContainer.appendChild(img);
+                    
+                    // Store current QR code data for download
+                    currentQRCode = canvas.toDataURL('image/png');
+                    
+                    // Show download section
+                    downloadSection.classList.remove('hidden');
+                    
+                } catch (error) {
+                    console.error('Error generating QR code:', error);
+                    alert('Error generating QR code. Please try again with different settings.');
+                }
+            }
+
+            function downloadQRCode() {
+                if (!currentQRCode) return;
+                
+                const link = document.createElement('a');
+                link.href = currentQRCode;
+                link.download = 'qr-code.png';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
+
+            // Generate QR code on Enter key press in textarea
+            qrContent.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    generateQRCode();
+                }
+            });
+
+            // Generate QR code when page loads if there's content
+            if (qrContent.value.trim()) {
+                generateQRCode();
+            }
+        });
+    </script>
+</body>
+</html>
